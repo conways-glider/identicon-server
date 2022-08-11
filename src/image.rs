@@ -2,8 +2,8 @@ use actix_web::{get, web, HttpResponse, Responder};
 use identicon_rs::Identicon;
 
 enum ImageType {
-    PNG,
-    JPEG,
+    Png,
+    Jpeg,
 }
 
 fn generate_image(image_type: ImageType, path: web::Path<String>) -> impl Responder {
@@ -11,11 +11,11 @@ fn generate_image(image_type: ImageType, path: web::Path<String>) -> impl Respon
     let identicon = Identicon::new(&identicon_string);
 
     match image_type {
-        ImageType::PNG => {
+        ImageType::Png => {
             let data = identicon.export_png_data().unwrap();
             HttpResponse::Ok().content_type("image/png").body(data)
         }
-        ImageType::JPEG => {
+        ImageType::Jpeg => {
             let data = identicon.export_jpeg_data().unwrap();
             HttpResponse::Ok().content_type("image/jpeg").body(data)
         }
@@ -24,20 +24,20 @@ fn generate_image(image_type: ImageType, path: web::Path<String>) -> impl Respon
 
 #[get("/{name}")]
 pub async fn generate_png_raw_path(path: web::Path<String>) -> impl Responder {
-    generate_image(ImageType::PNG, path)
+    generate_image(ImageType::Png, path)
 }
 
 #[get("/{name}.png")]
 pub async fn generate_png_path(path: web::Path<String>) -> impl Responder {
-    generate_image(ImageType::PNG, path)
+    generate_image(ImageType::Png, path)
 }
 
 #[get("/{name}.jpg")]
 pub async fn generate_jpg_path(path: web::Path<String>) -> impl Responder {
-    generate_image(ImageType::JPEG, path)
+    generate_image(ImageType::Jpeg, path)
 }
 
 #[get("/{name}.jpeg")]
 pub async fn generate_jpeg_path(path: web::Path<String>) -> impl Responder {
-    generate_image(ImageType::JPEG, path)
+    generate_image(ImageType::Jpeg, path)
 }
