@@ -1,7 +1,7 @@
 # Identicon-server
 
 [![Continuous Integration](https://github.com/conways-glider/identicon-rs/actions/workflows/ci-workflow.yml/badge.svg)](https://github.com/conways-glider/identicon-rs/actions/workflows/ci-workflow.yml)
-[![dependency status](https://deps.rs/crate/identicon-rs/0.1.0/status.svg)](https://deps.rs/crate/identicon-server/0.1.0)
+[![dependency status](https://deps.rs/crate/identicon-server/0.1.0/status.svg)](https://deps.rs/crate/identicon-server/0.1.0)
 
 TODO
 

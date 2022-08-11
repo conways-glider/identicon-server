@@ -26,3 +26,6 @@ include = [
 [dependencies]
 actix-web = "4"
 identicon-rs = "3"
+
+[dev-dependencies]
+version-sync = "0.9"
