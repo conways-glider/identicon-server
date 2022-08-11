@@ -1,9 +1,27 @@
 [package]
 name = "identicon-server"
 version = "0.1.0"
+authors = ["Nia Maxwell <nia@nia.dev>"]
 edition = "2021"
+readme = "README.md"
+description = """
+identicon-server is a simple server to render identicons.
+"""
+documentation = "https://docs.rs/identicon-server"
+repository = "https://github.com/conways-glider/identicon-server"
+license = "MIT OR Apache-2.0"
+keywords = ["image", "identicon", "avatar"]
+categories = ["graphics", "multimedia::images", "value-formatting", "visualization"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+include = [
+    "Cargo.toml",
+    "README.md",
+    "src/**",
+    "examples/**",
+    "tests/**",
+    "LICENSE-APACHE",
+    "LICENSE-MIT",
+]
 
 [dependencies]
 actix-web = "4"
