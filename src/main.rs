@@ -13,7 +13,7 @@ use tracing::{error, info};
 mod errors;
 mod image;
 
-const INDEX: &'static [u8] = include_bytes!("../assets/index.html");
+const INDEX: &'static str = include_str!("../assets/index.html");
 
 #[derive(Parser, Debug, Clone, Copy)]
 #[clap(author, version, about, long_about = None)]
@@ -129,6 +129,6 @@ async fn shutdown_signal() {
     info!("signal received, starting graceful shutdown");
 }
 
-async fn index() -> Html<&'static [u8]> {
+async fn index() -> Html<&'static str> {
     Html(INDEX)
 }
