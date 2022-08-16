@@ -10,8 +10,11 @@ use axum::{
 use clap::Parser;
 use tokio::signal;
 use tower::{BoxError, ServiceBuilder};
-use tower_http::{services::ServeDir, trace::TraceLayer};
-use tracing::{error, info};
+use tower_http::{
+    services::ServeDir,
+    trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer},
+};
+use tracing::{error, info, Level};
 
 mod errors;
 mod image;
@@ -57,12 +60,17 @@ async fn main() {
     // Construct Middleware
     let app_data: AppData = Arc::new(args);
 
+    let trace_layer = TraceLayer::new_for_http()
+        .make_span_with(DefaultMakeSpan::default().level(Level::INFO))
+        .on_response(DefaultOnResponse::default().level(Level::INFO))
+        .on_request(DefaultOnRequest::default().level(Level::INFO));
+
     let middleware_stack = ServiceBuilder::new()
         .layer(HandleErrorLayer::new(handle_error))
         .load_shed()
         .concurrency_limit(1024)
         .timeout(Duration::from_secs(5))
-        .layer(TraceLayer::new_for_http())
+        .layer(trace_layer)
         .layer(Extension(app_data));
 
     // Construct App
