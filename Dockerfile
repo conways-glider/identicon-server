@@ -8,6 +8,7 @@ RUN ls -la /target/release/
 # FROM gcr.io/distroless/static-debian11
 FROM gcr.io/distroless/cc
 COPY --from=build /target/release/identicon-server /
+COPY ./assets /assets
 
 EXPOSE 8080
 ENV RUST_LOG info

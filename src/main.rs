@@ -3,20 +3,18 @@ use std::{net::SocketAddr, sync::Arc, time::Duration};
 use axum::{
     error_handling::HandleErrorLayer,
     http::StatusCode,
-    response::{Html, IntoResponse},
-    routing::get,
+    response::IntoResponse,
+    routing::{get, get_service},
     Extension, Router,
 };
 use clap::Parser;
 use tokio::signal;
 use tower::{BoxError, ServiceBuilder};
-use tower_http::trace::TraceLayer;
+use tower_http::{services::ServeDir, trace::TraceLayer};
 use tracing::{error, info};
 
 mod errors;
 mod image;
-
-const INDEX: &'static str = include_str!("../assets/index.html");
 
 #[derive(Parser, Debug, Clone, Copy)]
 #[clap(author, version, about, long_about = None)]
@@ -69,9 +67,8 @@ async fn main() {
 
     // Construct App
     let app = Router::new()
-        .route("/", get(index))
-        .route("/index.html", get(index))
-        .route("/:name", get(image::generate_image_path))
+        .route("/identicon/:name", get(image::generate_image_path))
+        .fallback(get_service(ServeDir::new("assets")).handle_error(handle_serve_dir_error))
         .layer(middleware_stack);
 
     // Start Server
@@ -83,7 +80,12 @@ async fn main() {
         .unwrap();
 }
 
+async fn handle_serve_dir_error(_err: std::io::Error) -> impl IntoResponse {
+    errors::new(StatusCode::INTERNAL_SERVER_ERROR, "could not read asset")
+}
+
 async fn handle_error(error: BoxError) -> impl IntoResponse {
+    error!("handling error: {}", error);
     if error.is::<errors::AppError>() {
         match error.downcast::<errors::AppError>() {
             Ok(err) => err.into_response(),
@@ -130,8 +132,4 @@ async fn shutdown_signal() {
     }
 
     info!("signal received, starting graceful shutdown");
-}
-
-async fn index() -> Html<&'static str> {
-    Html(INDEX)
 }
