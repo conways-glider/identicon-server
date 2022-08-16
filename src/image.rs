@@ -8,7 +8,7 @@ use identicon_rs::Identicon;
 use serde::Deserialize;
 use tracing::info;
 
-use crate::error::{self, AppError};
+use crate::errors::{self, AppError};
 use crate::Args;
 enum ImageType {
     Png,
@@ -63,14 +63,14 @@ fn generate_image_response(
     Ok(response.into_response())
 }
 
-pub(crate) async fn generate_image(
+pub(crate) fn generate_image(
     name: String,
     params: ImageQueryParams,
     args: Args,
 ) -> Result<Response, AppError> {
     info!("Generating image for {}", name);
     let path = StdPath::new(&name);
-    let name_extraction_error = error::new(
+    let name_extraction_error = errors::new(
         StatusCode::INTERNAL_SERVER_ERROR,
         "Could not extract name from path",
     );
@@ -102,10 +102,7 @@ pub(crate) async fn generate_image_path(
     Query(params): Query<ImageQueryParams>,
     Extension(args): Extension<Args>,
 ) -> Result<Response, AppError> {
-    tokio::task::spawn(generate_image(name, params, args))
+    tokio::task::spawn_blocking(move || generate_image(name, params, args))
         .await
         .unwrap()
-    // tokio::task::spawn_blocking(move || {
-    //     generate_image(name, params, args)
-    // }).await.unwrap()
 }

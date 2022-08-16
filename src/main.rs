@@ -1,11 +1,16 @@
-use std::net::SocketAddr;
+use std::{net::SocketAddr, time::Duration};
 
-use axum::{routing::get, Extension, Router};
+use axum::{
+    error_handling::HandleErrorLayer, http::StatusCode, response::IntoResponse, routing::get,
+    Extension, Router,
+};
 use clap::Parser;
 use tokio::signal;
+use tower::{BoxError, ServiceBuilder};
+use tower_http::trace::TraceLayer;
 use tracing::info;
 
-mod error;
+mod errors;
 mod image;
 
 #[derive(Parser, Debug, Clone, Copy)]
@@ -31,11 +36,16 @@ async fn main() {
 
     tracing_subscriber::fmt::init();
 
-    let app = Router::new()
-        // `GET /` goes to `root`
-        .route("/:name", get(image::generate_image_path))
-        .route("/", get(root))
+    let middleware_stack = ServiceBuilder::new()
+        .layer(HandleErrorLayer::new(handle_error))
+        .timeout(Duration::from_secs(5))
+        .layer(TraceLayer::new_for_http())
         .layer(Extension(args));
+
+    let app = Router::new()
+        .route("/", get(root))
+        .route("/:name", get(image::generate_image_path))
+        .layer(middleware_stack);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     axum::Server::bind(&addr)
@@ -43,6 +53,26 @@ async fn main() {
         .with_graceful_shutdown(shutdown_signal())
         .await
         .unwrap();
+}
+
+async fn handle_error(error: BoxError) -> impl IntoResponse {
+    if error.is::<errors::AppError>() {
+        errors::new(StatusCode::IM_A_TEAPOT, "TEAPOT")
+    } else if error.is::<tower::timeout::error::Elapsed>() {
+        // return (StatusCode::REQUEST_TIMEOUT, Cow::from("request timed out")).into_response();
+        errors::new(StatusCode::REQUEST_TIMEOUT, "request timed out")
+    } else if error.is::<tower::load_shed::error::Overloaded>() {
+        errors::new(
+            StatusCode::SERVICE_UNAVAILABLE,
+            "service is overloaded, try again later",
+        )
+    } else {
+        errors::new(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            // &format!("unhandled internal error: {0}", error),
+            "unhandled internal error",
+        )
+    }
 }
 
 async fn shutdown_signal() {
