@@ -1,4 +1,4 @@
-use std::{net::SocketAddr, time::Duration};
+use std::{net::SocketAddr, sync::Arc, time::Duration};
 
 use axum::{
     error_handling::HandleErrorLayer, http::StatusCode, response::IntoResponse, routing::get,
@@ -29,6 +29,8 @@ pub struct Args {
     mirrored: bool,
 }
 
+type AppData = Arc<Args>;
+
 #[tokio::main]
 async fn main() {
     identicon_rs::Identicon::default().border();
@@ -50,13 +52,15 @@ async fn main() {
     }
 
     // Construct Middleware
+    let app_data: AppData = Arc::new(args);
+
     let middleware_stack = ServiceBuilder::new()
         .layer(HandleErrorLayer::new(handle_error))
         .load_shed()
         .concurrency_limit(1024)
         .timeout(Duration::from_secs(5))
         .layer(TraceLayer::new_for_http())
-        .layer(Extension(args));
+        .layer(Extension(app_data));
 
     // Construct App
     let app = Router::new()

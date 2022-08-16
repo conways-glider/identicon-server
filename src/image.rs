@@ -9,7 +9,7 @@ use serde::Deserialize;
 use tracing::{error, info};
 
 use crate::errors::{self, AppError};
-use crate::Args;
+use crate::AppData;
 enum ImageType {
     Png,
     Jpeg,
@@ -24,7 +24,7 @@ pub(crate) struct ImageQueryParams {
 }
 
 fn generate_image_response(
-    args: Args,
+    args: AppData,
     params: ImageQueryParams,
     image_type: ImageType,
     input: String,
@@ -66,7 +66,7 @@ fn generate_image_response(
 pub(crate) fn generate_image(
     name: String,
     params: ImageQueryParams,
-    args: Args,
+    args: AppData,
 ) -> Result<Response, AppError> {
     info!("Generating image for {}", name);
     let path = StdPath::new(&name);
@@ -100,7 +100,7 @@ pub(crate) fn generate_image(
 pub(crate) async fn generate_image_path(
     Path(name): Path<String>,
     Query(params): Query<ImageQueryParams>,
-    Extension(args): Extension<Args>,
+    Extension(args): Extension<AppData>,
 ) -> Result<Response, AppError> {
     if args.scale <= args.size {
         let err = errors::AppError::ScaleTooSmall {
