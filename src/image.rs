@@ -102,7 +102,30 @@ pub(crate) async fn generate_image_path(
     Query(params): Query<ImageQueryParams>,
     Extension(args): Extension<Args>,
 ) -> Result<Response, AppError> {
-    tokio::task::spawn_blocking(move || generate_image(name, params, args))
-        .await
-        .unwrap()
+    if args.scale <= args.size {
+        Err(errors::AppError::ScaleTooSmall {
+            scale: args.scale,
+            size: args.size,
+        })
+    } else if args.scale > 1024 {
+        Err(errors::AppError::ScaleTooLarge(args.scale))
+    } else {
+        // tokio::task::spawn_blocking(move || generate_image(name, params, args))
+        //     .await
+        //     .unwrap()
+
+        // Use rayon as identicon generation is a CPU bottleneck
+        let (send, recv) = tokio::sync::oneshot::channel();
+
+        // Spawn a task on rayon.
+        rayon::spawn(move || {
+            // Perform an expensive computation.
+            let image_result = generate_image(name, params, args);
+            // Send the result back to Tokio.
+            let _ = send.send(image_result);
+        });
+
+        // Wait for the rayon task.
+        recv.await.expect("Panic in rayon::spawn")
+    }
 }

@@ -602,6 +602,7 @@ dependencies = [
  "axum",
  "clap",
  "identicon-rs",
+ "rayon",
  "serde",
  "serde_json",
  "thiserror",

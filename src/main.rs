@@ -34,10 +34,18 @@ async fn main() {
     identicon_rs::Identicon::default().border();
     let args = Args::parse();
 
+    if args.scale < args.size {
+        panic!("scale must be equal to or larger than size");
+    } else if args.scale > 1024 {
+        panic!("scale must be equal to or less than 1024");
+    }
+
     tracing_subscriber::fmt::init();
 
     let middleware_stack = ServiceBuilder::new()
         .layer(HandleErrorLayer::new(handle_error))
+        .load_shed()
+        .concurrency_limit(1024)
         .timeout(Duration::from_secs(5))
         .layer(TraceLayer::new_for_http())
         .layer(Extension(args));
