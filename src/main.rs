@@ -1,7 +1,7 @@
 use std::{net::SocketAddr, sync::Arc, time::Duration};
 
 use axum::{
-    error_handling::HandleErrorLayer, http::StatusCode, response::IntoResponse, routing::get,
+    error_handling::HandleErrorLayer, http::StatusCode, response::{IntoResponse, Html}, routing::get,
     Extension, Router,
 };
 use clap::Parser;
@@ -12,6 +12,8 @@ use tracing::{error, info};
 
 mod errors;
 mod image;
+
+const INDEX: &'static [u8] = include_bytes!("../assets/index.html");
 
 #[derive(Parser, Debug, Clone, Copy)]
 #[clap(author, version, about, long_about = None)]
@@ -64,7 +66,8 @@ async fn main() {
 
     // Construct App
     let app = Router::new()
-        .route("/", get(root))
+        .route("/", get(index))
+        .route("/index.html", get(index))
         .route("/:name", get(image::generate_image_path))
         .layer(middleware_stack);
 
@@ -126,6 +129,6 @@ async fn shutdown_signal() {
     info!("signal received, starting graceful shutdown");
 }
 
-async fn root() -> &'static str {
-    todo!()
+async fn index() -> Html<&'static [u8]> {
+    Html(INDEX)
 }
