@@ -1,7 +1,10 @@
 use std::{net::SocketAddr, sync::Arc, time::Duration};
 
 use axum::{
-    error_handling::HandleErrorLayer, http::StatusCode, response::{IntoResponse, Html}, routing::get,
+    error_handling::HandleErrorLayer,
+    http::StatusCode,
+    response::{Html, IntoResponse},
+    routing::get,
     Extension, Router,
 };
 use clap::Parser;

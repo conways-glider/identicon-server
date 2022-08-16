@@ -15,6 +15,7 @@ pub(crate) enum AppError {
 
     #[error("scale must be equal to or less than 1024: {0}")]
     ScaleTooLarge(u32),
+
     #[error("scale must be greater than the size: {scale} < {size}")]
     ScaleTooSmall { scale: u32, size: u32 },
 }
