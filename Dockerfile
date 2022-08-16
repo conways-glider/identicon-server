@@ -13,4 +13,4 @@ COPY ./assets /assets
 EXPOSE 8080
 ENV RUST_LOG info
 
-CMD ["./identicon-server"]
+CMD ["./identicon-server", "--json-logs"]

@@ -33,6 +33,9 @@ pub struct Args {
 
     #[clap(long, value_parser, default_value_t = identicon_rs::Identicon::default().mirrored())]
     mirrored: bool,
+
+    #[clap(long, value_parser, default_value_t = false)]
+    json_logs: bool,
 }
 
 type AppData = Arc<Args>;
@@ -41,7 +44,13 @@ type AppData = Arc<Args>;
 async fn main() {
     identicon_rs::Identicon::default().border();
     let args = Args::parse();
-    tracing_subscriber::fmt::init();
+
+    // Set up logging
+    if args.json_logs {
+        tracing_subscriber::fmt().with_ansi(false).json().init();
+    } else {
+        tracing_subscriber::fmt::init();
+    }
 
     // Validate args
     if args.scale < args.size {
