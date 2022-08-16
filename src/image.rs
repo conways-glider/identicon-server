@@ -6,7 +6,7 @@ use axum::response::Response;
 use axum::{extract::Path, response::IntoResponse, Extension};
 use identicon_rs::Identicon;
 use serde::Deserialize;
-use tracing::info;
+use tracing::{error, info};
 
 use crate::errors::{self, AppError};
 use crate::Args;
@@ -103,12 +103,16 @@ pub(crate) async fn generate_image_path(
     Extension(args): Extension<Args>,
 ) -> Result<Response, AppError> {
     if args.scale <= args.size {
-        Err(errors::AppError::ScaleTooSmall {
+        let err = errors::AppError::ScaleTooSmall {
             scale: args.scale,
             size: args.size,
-        })
+        };
+        error! {"{}", err};
+        Err(err)
     } else if args.scale > 1024 {
-        Err(errors::AppError::ScaleTooLarge(args.scale))
+        let err = errors::AppError::ScaleTooLarge(args.scale);
+        error! {"{}", err};
+        Err(err)
     } else {
         // tokio::task::spawn_blocking(move || generate_image(name, params, args))
         //     .await

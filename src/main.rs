@@ -8,7 +8,7 @@ use clap::Parser;
 use tokio::signal;
 use tower::{BoxError, ServiceBuilder};
 use tower_http::trace::TraceLayer;
-use tracing::info;
+use tracing::{error, info};
 
 mod errors;
 mod image;
@@ -33,15 +33,23 @@ pub struct Args {
 async fn main() {
     identicon_rs::Identicon::default().border();
     let args = Args::parse();
-
-    if args.scale < args.size {
-        panic!("scale must be equal to or larger than size");
-    } else if args.scale > 1024 {
-        panic!("scale must be equal to or less than 1024");
-    }
-
     tracing_subscriber::fmt::init();
 
+    // Validate args
+    if args.scale < args.size {
+        let err = errors::AppError::ScaleTooSmall {
+            scale: args.scale,
+            size: args.size,
+        };
+        error!("{}", err);
+        panic!("{}", err.to_string());
+    } else if args.scale > 1024 {
+        let err = errors::AppError::ScaleTooLarge(args.scale);
+        error!("{}", err);
+        panic!("{}", err.to_string());
+    }
+
+    // Construct Middleware
     let middleware_stack = ServiceBuilder::new()
         .layer(HandleErrorLayer::new(handle_error))
         .load_shed()
@@ -50,11 +58,13 @@ async fn main() {
         .layer(TraceLayer::new_for_http())
         .layer(Extension(args));
 
+    // Construct App
     let app = Router::new()
         .route("/", get(root))
         .route("/:name", get(image::generate_image_path))
         .layer(middleware_stack);
 
+    // Start Server
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
@@ -65,7 +75,10 @@ async fn main() {
 
 async fn handle_error(error: BoxError) -> impl IntoResponse {
     if error.is::<errors::AppError>() {
-        errors::new(StatusCode::IM_A_TEAPOT, "TEAPOT")
+        match error.downcast::<errors::AppError>() {
+            Ok(err) => err.into_response(),
+            Err(_) => errors::new(StatusCode::INTERNAL_SERVER_ERROR, "internal server error"),
+        }
     } else if error.is::<tower::timeout::error::Elapsed>() {
         // return (StatusCode::REQUEST_TIMEOUT, Cow::from("request timed out")).into_response();
         errors::new(StatusCode::REQUEST_TIMEOUT, "request timed out")
