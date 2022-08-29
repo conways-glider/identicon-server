@@ -4,7 +4,7 @@ import { sleep } from 'k6';
 
 export default function () {
 
-  http.get('https://identicon.nia.dev/test');
+  http.get('https://identicon.nia.dev/identicon/test');
 
   // sleep(1);
 }

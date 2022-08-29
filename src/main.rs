@@ -3,12 +3,12 @@ use std::{net::SocketAddr, sync::Arc, time::Duration};
 use axum::{
     error_handling::HandleErrorLayer,
     http::StatusCode,
-    response::{IntoResponse, Html},
+    response::IntoResponse,
     routing::{get, get_service},
     Extension, Router,
 };
 use clap::Parser;
-use tokio::signal;
+use tokio::{io, signal};
 use tower::{BoxError, ServiceBuilder};
 use tower_http::{
     services::ServeDir,
@@ -18,8 +18,6 @@ use tracing::{error, info, Level};
 
 mod errors;
 mod image;
-
-const INDEX_STRING: &str = include_str!("../assets/index.html");
 
 #[derive(Parser, Debug, Clone, Copy)]
 #[clap(author, version, about, long_about = None)]
@@ -77,7 +75,7 @@ async fn main() {
         .on_request(DefaultOnRequest::default().level(Level::INFO));
 
     let middleware_stack = ServiceBuilder::new()
-        .layer(HandleErrorLayer::new(handle_error))
+        .layer(HandleErrorLayer::new(middleware_handle_error))
         .load_shed()
         .concurrency_limit(1024)
         .timeout(Duration::from_secs(5))
@@ -86,10 +84,8 @@ async fn main() {
 
     // Construct App
     let app = Router::new()
-        .route("/", get(index))
-        .route("/index.html", get(index))
         .route("/identicon/:name", get(image::generate_image_path))
-        // .fallback(get_service(ServeDir::new("assets")).handle_error(handle_serve_dir_error))
+        .fallback(get_service(ServeDir::new("./dist")).handle_error(fallback_handle_error))
         .layer(middleware_stack);
 
     // Start Server
@@ -101,11 +97,11 @@ async fn main() {
         .unwrap();
 }
 
-// async fn handle_serve_dir_error(_err: std::io::Error) -> impl IntoResponse {
-//     errors::new(StatusCode::INTERNAL_SERVER_ERROR, "could not read asset")
-// }
+async fn fallback_handle_error(_err: io::Error) -> impl IntoResponse {
+    (StatusCode::INTERNAL_SERVER_ERROR, "Something went wrong...")
+}
 
-async fn handle_error(error: BoxError) -> impl IntoResponse {
+async fn middleware_handle_error(error: BoxError) -> impl IntoResponse {
     error!("handling error: {}", error);
     if error.is::<errors::AppError>() {
         match error.downcast::<errors::AppError>() {
@@ -153,8 +149,4 @@ async fn shutdown_signal() {
     }
 
     info!("signal received, starting graceful shutdown");
-}
-
-async fn index() -> impl IntoResponse {
-    Html(INDEX_STRING)
 }
