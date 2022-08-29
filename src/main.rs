@@ -85,7 +85,7 @@ async fn main() {
     // Construct App
     let app = Router::new()
         .route("/identicon/:name", get(image::generate_image_path))
-        .fallback(get_service(ServeDir::new("./dist")).handle_error(fallback_handle_error))
+        .fallback(get_service(ServeDir::new("./assets")).handle_error(fallback_handle_error))
         .layer(middleware_stack);
 
     // Start Server
@@ -98,7 +98,7 @@ async fn main() {
 }
 
 async fn fallback_handle_error(_err: io::Error) -> impl IntoResponse {
-    (StatusCode::INTERNAL_SERVER_ERROR, "Something went wrong...")
+    (StatusCode::INTERNAL_SERVER_ERROR, "unhandled internal error")
 }
 
 async fn middleware_handle_error(error: BoxError) -> impl IntoResponse {
