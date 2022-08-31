@@ -114,10 +114,6 @@ pub(crate) async fn generate_image_path(
         error! {"{}", err};
         Err(err)
     } else {
-        // tokio::task::spawn_blocking(move || generate_image(name, params, args))
-        //     .await
-        //     .unwrap()
-
         // Use rayon as identicon generation is a CPU bottleneck
         let (send, recv) = tokio::sync::oneshot::channel();
 

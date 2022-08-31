@@ -42,7 +42,6 @@ type AppData = Arc<Args>;
 
 #[tokio::main]
 async fn main() {
-    identicon_rs::Identicon::default().border();
     let args = Args::parse();
 
     // Set up logging
@@ -98,7 +97,10 @@ async fn main() {
 }
 
 async fn fallback_handle_error(_err: io::Error) -> impl IntoResponse {
-    (StatusCode::INTERNAL_SERVER_ERROR, "unhandled internal error")
+    (
+        StatusCode::INTERNAL_SERVER_ERROR,
+        "unhandled internal error",
+    )
 }
 
 async fn middleware_handle_error(error: BoxError) -> impl IntoResponse {
