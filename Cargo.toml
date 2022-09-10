@@ -41,6 +41,5 @@ rayon = "1.5"
 version-sync = "0.9"
 
 [profile.release]
-strip = true
 lto = true
 codegen-units = 1
