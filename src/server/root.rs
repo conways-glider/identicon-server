@@ -10,11 +10,5 @@ pub fn router() -> Router<AppState> {
 #[instrument]
 async fn handler() -> Html<&'static str> {
     info!("running root");
-    subfunction();
     Html("<h1>Hello, World!</h1>")
-}
-
-#[instrument]
-fn subfunction() {
-    info!("subfunction")
 }

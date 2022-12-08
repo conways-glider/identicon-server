@@ -3,7 +3,7 @@ use axum::{error_handling::HandleErrorLayer, http::StatusCode, response::IntoRes
 use std::{borrow::Cow, net::SocketAddr, time::Duration};
 use tower::{BoxError, ServiceBuilder};
 use tower_http::trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer};
-use tracing::{info, Level};
+use tracing::{debug, info, instrument, Level};
 
 use crate::config::AppState;
 
@@ -11,13 +11,13 @@ mod root;
 mod signal;
 
 pub async fn start_server(state: AppState) -> anyhow::Result<()> {
+    let port = state.config.port;
+    let addr = SocketAddr::from(([0, 0, 0, 0], port));
+
     // build our application with a route
     let app = api_router(state);
 
-    // run it
-    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     info!(addr = ?addr, "starting server");
-
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .with_graceful_shutdown(signal::shutdown_signal())
@@ -25,14 +25,17 @@ pub async fn start_server(state: AppState) -> anyhow::Result<()> {
         .context("error running server")
 }
 
+#[instrument]
 fn api_router(state: AppState) -> Router {
     // Enables logging. Use `RUST_LOG=tower_http=debug`
+    debug!("constructing trace layer");
     let trace_layer = TraceLayer::new_for_http()
         .make_span_with(DefaultMakeSpan::default().level(Level::INFO))
         .on_response(DefaultOnResponse::default().level(Level::INFO))
         .on_request(DefaultOnRequest::default().level(Level::INFO));
 
     // construct middleware
+    debug!("constructing middleware");
     let middleware_stack = ServiceBuilder::new()
         .layer(HandleErrorLayer::new(handle_error))
         .load_shed()
@@ -40,8 +43,8 @@ fn api_router(state: AppState) -> Router {
         .timeout(Duration::from_secs(10))
         .layer(trace_layer);
 
-    // set up config
-
+    // set up router
+    info!("constructing router");
     Router::new()
         .merge(root::router())
         .layer(middleware_stack)
