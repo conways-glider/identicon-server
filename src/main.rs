@@ -1,6 +1,4 @@
-use std::sync::Arc;
-
-use config::{AppState, Config};
+use config::AppState;
 
 mod config;
 mod server;
@@ -9,11 +7,7 @@ mod server;
 async fn main() -> anyhow::Result<()> {
     start_logger();
 
-    // load app state
-    let config = Config {};
-    let state = AppState {
-        config: Arc::new(config),
-    };
+    let state = AppState::load();
 
     server::start_server(state).await
 }
