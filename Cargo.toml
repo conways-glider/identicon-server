@@ -1,45 +1,39 @@
 [package]
 name = "identicon-server"
 version = "0.1.0"
-authors = ["Nia Maxwell <nia@nia.dev>"]
 edition = "2021"
-readme = "README.md"
-description = """
-identicon-server is a simple server to render identicons.
-"""
-documentation = "https://docs.rs/identicon-server"
-repository = "https://github.com/conways-glider/identicon-server"
 license = "MIT OR Apache-2.0"
-keywords = ["image", "identicon", "avatar"]
-categories = ["graphics", "multimedia::images", "value-formatting", "visualization"]
-
-include = [
-    "Cargo.toml",
-    "README.md",
-    "src/**",
-    "examples/**",
-    "tests/**",
-    "LICENSE-APACHE",
-    "LICENSE-MIT",
-]
+publish = false
 
 [dependencies]
-axum = "0.5"
-thiserror = "1.0"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0.68"
-tokio = { version = "1.0", features = ["full"] }
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
-clap = { version = "3.2.17", features = ["derive"] }
-identicon-rs = "3"
+# runtime & server
+axum = { version = "0.6", features = ["macros"] }
+axum-extra = { version = "0.4", features = ["spa"] }
+tokio = { version = "1.23", features = ["full"] }
+rayon = "1.5"
 tower = { version = "0.4", features = ["full"] }
 tower-http = { version = "0.3", features = ["full"] }
-rayon = "1.5"
+
+# data
+identicon-rs = "3.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# configuration
+# clap = { version = "4.0", features = ["derive", "env"] }
+clap = "4.0"
+
+# error handling
+anyhow = "1.0"
+thiserror = "1.0"
 
 [dev-dependencies]
 version-sync = "0.9"
 
-[profile.release]
-lto = true
-codegen-units = 1
+# [profile.release]
+# lto = true
+# codegen-units = 1
