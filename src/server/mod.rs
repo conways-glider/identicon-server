@@ -1,3 +1,4 @@
+use anyhow::Context;
 use axum::Router;
 use std::net::SocketAddr;
 use tower_http::trace::TraceLayer;
@@ -15,8 +16,8 @@ pub async fn start_server() -> anyhow::Result<()> {
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .with_graceful_shutdown(signal::shutdown_signal())
-        .await;
-    Ok(())
+        .await
+        .context("error running server")
 }
 
 fn api_router() -> Router {
