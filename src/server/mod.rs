@@ -1,5 +1,6 @@
 use anyhow::Context;
 use axum::Router;
+use tracing::info;
 use std::net::SocketAddr;
 use tower_http::trace::TraceLayer;
 
@@ -12,7 +13,8 @@ pub async fn start_server() -> anyhow::Result<()> {
 
     // run it
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
-    println!("listening on {}", addr);
+    info!(addr = ?addr, "starting server");
+
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .with_graceful_shutdown(signal::shutdown_signal())
