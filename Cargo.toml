@@ -5,17 +5,29 @@ edition = "2021"
 publish = false
 
 [dependencies]
+# runtime & server
 axum = "0.6"
-clap = "4.0"
+tokio = { version = "1.23", features = ["full"] }
+rayon = "1.5"
+tower = { version = "0.4", features = ["full"] }
+tower-http = { version = "0.3", features = ["full"] }
+
+# data
 identicon-rs = "3.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+
+# logging
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
-tokio = { version = "1.23", features = ["full"] }
-tower = { version = "0.4", features = ["full"] }
-tower-http = { version = "0.3", features = ["full"] }
-rayon = "1.5"
+
+# configuration
+# clap = { version = "4.0", features = ["derive", "env"] }
+clap = "4.0"
+
+# error handling
+anyhow = "1.0"
+thiserror = "1.0"
 
 [dev-dependencies]
 version-sync = "0.9"
