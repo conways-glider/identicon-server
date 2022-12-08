@@ -1,4 +1,5 @@
 use axum::{response::Html, routing::get, Router};
+use tracing::instrument;
 
 pub fn router() -> Router {
     // By having each module responsible for setting up its own routing,
@@ -6,6 +7,7 @@ pub fn router() -> Router {
     Router::new().route("/", get(handler))
 }
 
+#[instrument]
 async fn handler() -> Html<&'static str> {
     Html("<h1>Hello, World!</h1>")
 }
