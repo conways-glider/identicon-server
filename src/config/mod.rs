@@ -1,6 +1,8 @@
 use std::sync::Arc;
 
-#[derive(Clone, Debug)]
+use axum::extract::FromRef;
+
+#[derive(Clone, Debug, FromRef)]
 pub struct AppState {
     pub config: SharedConfig,
 }
