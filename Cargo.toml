@@ -8,6 +8,7 @@ publish = false
 [dependencies]
 # runtime & server
 axum = { version = "0.6", features = ["macros"] }
+axum-extra = { version = "0.4", features = ["spa"] }
 tokio = { version = "1.23", features = ["full"] }
 rayon = "1.5"
 tower = { version = "0.4", features = ["full"] }

@@ -1,5 +1,6 @@
 use anyhow::Context;
 use axum::{error_handling::HandleErrorLayer, http::StatusCode, response::IntoResponse, Router};
+use axum_extra::routing::SpaRouter;
 use std::{borrow::Cow, net::SocketAddr, time::Duration};
 use tower::{BoxError, ServiceBuilder};
 use tower_http::trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer};
@@ -7,7 +8,7 @@ use tracing::{debug, info, instrument, Level};
 
 use crate::config::AppState;
 
-mod root;
+mod image;
 mod signal;
 
 pub async fn start_server(state: AppState) -> anyhow::Result<()> {
@@ -46,7 +47,8 @@ fn api_router(state: AppState) -> Router {
     // set up router
     info!("constructing router");
     Router::new()
-        .merge(root::router())
+        .merge(SpaRouter::new("/assets", "assets").index_file("index.html"))
+        .merge(image::router())
         .layer(middleware_stack)
         .with_state(state)
 }
