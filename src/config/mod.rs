@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct AppState {
     pub config: SharedConfig,
 }
@@ -15,6 +15,7 @@ impl AppState {
     }
 }
 
-type SharedConfig = Arc<Config>;
+pub type SharedConfig = Arc<Config>;
 
+#[derive(Clone, Debug)]
 pub struct Config {}
