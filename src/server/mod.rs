@@ -5,12 +5,14 @@ use tower::{BoxError, ServiceBuilder};
 use tower_http::trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer};
 use tracing::{info, Level};
 
+use crate::config::AppState;
+
 mod root;
 mod signal;
 
-pub async fn start_server() -> anyhow::Result<()> {
+pub async fn start_server(state: AppState) -> anyhow::Result<()> {
     // build our application with a route
-    let app = api_router();
+    let app = api_router(state);
 
     // run it
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
@@ -23,13 +25,14 @@ pub async fn start_server() -> anyhow::Result<()> {
         .context("error running server")
 }
 
-fn api_router() -> Router {
-    // construct middleware
+fn api_router(state: AppState) -> Router {
+    // Enables logging. Use `RUST_LOG=tower_http=debug`
     let trace_layer = TraceLayer::new_for_http()
         .make_span_with(DefaultMakeSpan::default().level(Level::INFO))
         .on_response(DefaultOnResponse::default().level(Level::INFO))
         .on_request(DefaultOnRequest::default().level(Level::INFO));
 
+    // construct middleware
     let middleware_stack = ServiceBuilder::new()
         .layer(HandleErrorLayer::new(handle_error))
         .load_shed()
@@ -37,10 +40,12 @@ fn api_router() -> Router {
         .timeout(Duration::from_secs(10))
         .layer(trace_layer);
 
+    // set up config
+
     Router::new()
         .merge(root::router())
-        // Enables logging. Use `RUST_LOG=tower_http=debug`
         .layer(middleware_stack)
+        .with_state(state)
 }
 
 async fn handle_error(error: BoxError) -> impl IntoResponse {
