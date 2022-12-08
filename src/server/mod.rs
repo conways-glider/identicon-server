@@ -34,7 +34,7 @@ fn api_router() -> Router {
         .layer(HandleErrorLayer::new(handle_error))
         .load_shed()
         .concurrency_limit(1024)
-        .timeout(Duration::from_secs(5))
+        .timeout(Duration::from_secs(10))
         .layer(trace_layer);
 
     Router::new()
