@@ -10,7 +10,7 @@ async fn main() -> anyhow::Result<()> {
     start_logger();
 
     // load app state
-    let config = Config::parse();
+    let config = Config {};
     let state = AppState {
         config: Arc::new(config),
     };
